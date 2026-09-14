@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Что приготовить</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3E5240">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #ECE7D9;
+    --paper: #FFFFFF;
+    --ink: #23291F;
+    --ink-soft: #5B6154;
+    --wood: #3E5240;
+    --wood-dark: #2A3A2C;
+    --mustard: #C98A1D;
+    --mustard-soft: #F0DAA9;
+    --tomato: #B23A2E;
+    --tomato-soft: #F3D8D2;
+    --line: #D9D2BE;
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.45;
+    -webkit-tap-highlight-color:transparent;
+  }
+  h1,h2,h3,.brand{
+    font-family:'Space Grotesk', sans-serif;
+  }
+  header.top{
+    background:var(--wood);
+    color:#F3EFE2;
+    padding:18px 20px;
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  header.top .brand{ font-size:20px; font-weight:700; letter-spacing:0.2px; }
+  header.top .sub{ color:#C9CFC2; font-size:13px; }
+  .mobile-tabs{ display:none; gap:8px; padding:12px 16px 0; }
+  .mobile-tabs button{
+    flex:1; padding:11px 8px; border-radius:10px; border:1px solid var(--line);
+    background:var(--paper); font-size:13.5px; font-weight:600; color:var(--ink-soft);
+  }
+  .mobile-tabs button.active{ background:var(--wood); color:#fff; border-color:var(--wood); }
+  .layout{
+    display:grid; grid-template-columns:300px 1fr; gap:22px;
+    padding:22px; max-width:1180px; margin:0 auto;
+  }
+  @media (max-width:820px){
+    header.top{padding:16px 16px 12px;}
+    .mobile-tabs{display:flex;}
+    .layout{display:block; padding:14px;}
+    .pantry{display:none; position:static; margin-bottom:0;}
+    .main{display:none;}
+    .layout.show-pantry .pantry{display:block;}
+    .layout.show-recipes .main{display:block;}
+  }
+  .pantry{
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    padding:16px; height:fit-content; position:sticky; top:16px;
+  }
+  .pantry h2{ font-size:16px; margin:0 0 4px; }
+  .pantry .hint{ font-size:12.5px; color:var(--ink-soft); margin-bottom:12px; }
+  .cat-title{ font-size:11.5px; color:var(--ink-soft); margin:14px 0 6px; font-weight:600; }
+  .acc-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 2px; cursor:pointer; user-select:none;
+    font-size:13px; font-weight:600; color:var(--ink);
+  }
+  .acc-header:first-of-type{ margin-top:0; }
+  .acc-count{
+    display:inline-block; background:var(--mustard); color:#fff; font-size:10.5px;
+    border-radius:999px; padding:1px 7px; margin-left:4px; font-weight:600;
+  }
+  .acc-arrow{ color:var(--ink-soft); font-size:11px; }
+  .acc-body{ padding-bottom:6px; }
+  .chips{ display:flex; flex-wrap:wrap; gap:7px; }
+  .chip{
+    border:1px solid var(--line); background:#F7F4EA; padding:8px 12px; border-radius:999px;
+    font-size:13px; cursor:pointer; user-select:none; transition:all .12s ease;
+  }
+  .chip.on{ background:var(--wood); border-color:var(--wood); color:#fff; }
+  .base-toggle{
+    margin-top:16px; padding-top:14px; border-top:1px solid var(--line);
+    font-size:12.5px; display:flex; align-items:flex-start; gap:8px;
+  }
+  .base-toggle input{margin-top:3px;}
+  .tolerance-row{ margin-top:12px; font-size:12.5px; color:var(--ink-soft); }
+  .tolerance-row input{width:100%;}
+  .clear-row{margin-top:12px;}
+  .clear-row button{
+    width:100%; padding:9px; border-radius:8px; border:1px solid var(--line);
+    background:#fff; font-size:12.5px; cursor:pointer; color:var(--ink-soft);
+  }
+  .main h1{ font-size:22px; margin:0 0 4px; }
+  .main .lead{ color:var(--ink-soft); font-size:13.5px; margin-bottom:14px; }
+
+  .filter-group{ margin-bottom:12px; }
+  .filter-group .fg-label{ font-size:11.5px; color:var(--ink-soft); font-weight:600; margin-bottom:6px; }
+  .scroll-row{
+    display:flex; gap:7px; overflow-x:auto; padding-bottom:4px;
+    scrollbar-width:thin;
+  }
+  .scroll-row::-webkit-scrollbar{ height:4px; }
+  .wrap-row{ display:flex; gap:7px; flex-wrap:wrap; }
+  .pill-btn{
+    border:1px solid var(--line); background:var(--paper); padding:7px 13px; border-radius:999px;
+    font-size:12.5px; cursor:pointer; white-space:nowrap; flex-shrink:0;
+  }
+  .pill-btn.active{ background:var(--mustard); border-color:var(--mustard); color:#fff; }
+  .pill-btn.diet-active{ background:var(--wood); border-color:var(--wood); color:#fff; }
+  .mode-toggle{ display:inline-flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; }
+  .mode-btn{
+    border:none; background:var(--paper); padding:4px 9px; font-size:10.5px; cursor:pointer; color:var(--ink-soft);
+  }
+  .mode-btn.active{ background:var(--mustard); color:#fff; }
+  .time-pill{
+    display:inline-block; font-size:10px; color:var(--ink-soft); background:#F1EEE0;
+    border-radius:5px; padding:2px 6px;
+  }
+  .prep-pill{
+    display:inline-block; font-size:10px; color:#8A5A00; background:#F5E3B8;
+    border-radius:5px; padding:2px 6px; font-weight:600;
+  }
+  .step.prep-step{ background:#FBF3DE; border-radius:8px; padding-left:6px; }
+  .shopping-btn{
+    display:block; width:100%; padding:11px; margin-bottom:18px;
+    border:1px solid var(--wood); border-radius:8px; background:#fff;
+    color:var(--wood); font-weight:600; font-size:13px; cursor:pointer;
+  }
+  .shopping-btn:active{ background:#F1EEE0; }
+  .tool-missing-note{ font-size:11px; color:var(--tomato); margin-top:2px; }
+  .surprise-block{
+    background:linear-gradient(135deg, var(--wood) 0%, var(--wood-dark) 100%);
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:14px;
+    text-align:center;
+  }
+  .surprise-tagline{
+    color:#E7E2CF;
+    font-size:12.5px;
+    margin-bottom:10px;
+  }
+  .surprise-btn{
+    display:inline-block;
+    padding:12px 28px;
+    border:none;
+    border-radius:999px;
+    background:var(--mustard);
+    color:#fff;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+  }
+  .surprise-btn:active{ transform:scale(0.97); }
+  .result-summary{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:10px;
+  }
+  .result-summary b{ color:var(--ink); }
+  .fav-btn{
+    position:absolute;
+    top:8px; right:8px;
+    width:30px; height:30px;
+    border-radius:50%;
+    border:none;
+    background:rgba(255,255,255,0.85);
+    font-size:15px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    z-index:2;
+  }
+  .fav-btn.on{ background:#fff; }
+  .modal-fav-btn{
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:999px;
+    padding:6px 14px;
+    font-size:12.5px;
+    cursor:pointer;
+    margin-left:8px;
+  }
+  .modal-fav-btn.on{ background:var(--tomato-soft); border-color:var(--tomato); color:var(--tomato); }
+
+  .filter-row{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .filter-btn{
+    border:1px solid var(--line); background:var(--paper); padding:7px 12px; border-radius:999px;
+    font-size:12.5px; cursor:pointer;
+  }
+  .filter-btn.active{ background:var(--mustard); border-color:var(--mustard); color:#fff; }
+
+  .cuisine-heading{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:15px; font-weight:600; margin:22px 0 10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .cuisine-heading:first-child{ margin-top:0; }
+
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; }
+  @media (max-width:520px){ .grid{grid-template-columns:repeat(2,1fr); gap:10px;} }
+  .card{
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden; cursor:pointer; transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .card.full-ready{
+    border-color:#4F7A55;
+    box-shadow:0 0 0 2px rgba(79,122,85,0.25);
+  }
+  .card:hover{ transform:translateY(-2px); box-shadow:0 6px 18px rgba(42,58,44,0.12); }
+  .card .photo{
+    height:120px; background:var(--mustard-soft); display:flex; align-items:center;
+    justify-content:center; font-size:40px; position:relative; overflow:hidden;
+  }
+  .card .photo img{ width:100%; height:100%; object-fit:cover; }
+  .card .body{ padding:10px 12px 12px; }
+  .card h3{ font-size:13.5px; margin:0 0 6px; line-height:1.25; }
+  .match-bar{ height:6px; background:var(--line); border-radius:4px; overflow:hidden; margin-bottom:6px; }
+  .match-bar > div{ height:100%; background:var(--wood); }
+  .match-bar.full > div{background:#4F7A55;}
+  .match-text{ font-size:11.5px; color:var(--ink-soft); }
+  .match-text.full{color:#3E6B44; font-weight:600;}
+  .missing{ font-size:11px; color:var(--tomato); margin-top:4px; }
+  .pill-row{ display:flex; gap:4px; flex-wrap:wrap; margin-bottom:6px; }
+  .cat-pill{
+    display:inline-block; font-size:10px; color:var(--ink-soft); background:#F1EEE0;
+    border-radius:5px; padding:2px 6px;
+  }
+  .overlay{
+    position:fixed; inset:0; background:rgba(35,41,31,0.5); display:none;
+    align-items:flex-start; justify-content:center; padding:30px 16px; overflow-y:auto; z-index:50;
+  }
+  .overlay.show{display:flex;}
+  .modal{ background:var(--paper); border-radius:12px; max-width:640px; width:100%; overflow:hidden; }
+  @media (max-width:600px){
+    .overlay{padding:0;}
+    .modal{max-width:100%; min-height:100vh; border-radius:0;}
+  }
+  .modal .photo{
+    height:200px; background:var(--mustard-soft); display:flex; align-items:center;
+    justify-content:center; font-size:64px;
+  }
+  .modal .photo img{width:100%;height:100%;object-fit:cover;}
+  .modal-body{padding:20px 20px 30px;}
+  .modal-body h2{font-size:20px;margin:0 0 4px;}
+  .close-btn{
+    position:absolute; margin:10px; background:rgba(255,255,255,0.9); border:none;
+    border-radius:50%; width:34px;height:34px; font-size:16px; cursor:pointer;
+  }
+  .servings-row{
+    display:flex; align-items:center; gap:10px; margin:14px 0 16px; padding:10px 12px;
+    background:#F7F4EA; border-radius:8px; flex-wrap:wrap;
+  }
+  .servings-row button{
+    width:32px;height:32px; border-radius:50%; border:1px solid var(--line);
+    background:#fff; font-size:16px; cursor:pointer;
+  }
+  .servings-row .count{font-weight:600; min-width:70px; text-align:center;}
+  .servings-row .tol{font-size:11.5px; color:var(--ink-soft); margin-left:auto;}
+  table.ing{ width:100%; border-collapse:collapse; margin-bottom:20px; font-size:13px; }
+  table.ing td{ padding:6px 4px; border-bottom:1px solid var(--line); }
+  table.ing td.have{color:#3E6B44;}
+  table.ing td.miss{color:var(--tomato);}
+  table.ing td.amt{text-align:right; white-space:nowrap; color:var(--ink-soft);}
+  .steps h3{font-size:14.5px; margin-bottom:8px;}
+  .step{ display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); }
+  .step:last-child{border-bottom:none;}
+  .step-num{
+    width:22px;height:22px; border-radius:50%; background:var(--wood); color:#fff;
+    font-size:11.5px; display:flex;align-items:center;justify-content:center; flex-shrink:0; margin-top:2px;
+  }
+  .step-text{flex:1; font-size:13px;}
+  .timer{ display:flex; align-items:center; gap:8px; margin-top:6px; font-size:12.5px; flex-wrap:wrap; }
+  .timer .tbtn{ border:1px solid var(--line); background:#fff; border-radius:8px; padding:10px 16px; cursor:pointer; font-size:13.5px; font-weight:600; min-height:38px; }
+  .timer .tbtn.stop{border-color:var(--tomato); color:var(--tomato);}
+  .timer .clock{ font-family:'Space Grotesk', sans-serif; font-weight:600; min-width:52px; }
+  .timer.done .clock{color:var(--tomato);}
+  .step.flash{background:var(--tomato-soft);}
+  .empty{ color:var(--ink-soft); font-size:13.5px; padding:30px 10px; text-align:center; }
+  .sub-note{
+    font-size:10.5px;
+    color:var(--ink-soft);
+    margin-top:1px;
+    font-weight:400;
+  }
+  .tools-block{ margin-bottom:16px; }
+  .tool-pill{
+    border:1px solid var(--line);
+    background:#F7F4EA;
+    padding:5px 11px;
+    border-radius:999px;
+    font-size:11.5px;
+    color:var(--ink-soft);
+  }
+  .tool-pill.have-tool{
+    background:#E3EFE3;
+    border-color:#B9D6BA;
+    color:#3E6B44;
+  }
+  .tool-pill.miss-tool{
+    background:var(--tomato-soft);
+    border-color:#E3B3AB;
+    color:var(--tomato);
+  }
+  .chip.tool-chip{ font-size:12.5px; }
+  .search-box{
+    width:100%; padding:9px 12px; border:1px solid var(--line); border-radius:8px;
+    font-size:13.5px; margin-bottom:12px; font-family:inherit;
+  }
+  .pantry-search{
+    width:100%; padding:9px 12px; border:1px solid var(--line); border-radius:8px;
+    font-size:13px; margin:2px 0 12px; font-family:inherit;
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">🍲 Что приготовить</div>
+  <div class="sub">выбери, что есть дома — остальное посчитаю сам</div>
+</header>
+
+<div class="mobile-tabs">
+  <button id="tabPantry" class="active">Кладовая</button>
+  <button id="tabRecipes">Рецепты</button>
+</div>
+
+<div class="layout show-pantry" id="layout">
+
+  <aside class="pantry" id="pantry"></aside>
+
+  <main class="main">
+    <h1>Что приготовим?</h1>
+    <div class="lead">Отмечай продукты слева — покажу, что можно приготовить.</div>
+
+    <input class="search-box" id="search" placeholder="Поиск блюда по названию...">
+
+    <div class="surprise-block">
+      <div class="surprise-tagline">Не знаешь, что приготовить? Я выберу за тебя.</div>
+      <button class="surprise-btn" id="surpriseBtn">🎲 Удиви меня</button>
+    </div>
+
+    <div class="result-summary" id="resultSummary"></div>
+
+    <div class="filter-row">
+      <button class="filter-btn active" data-f="all">Все рецепты</button>
+      <button class="filter-btn" data-f="full">Можно приготовить сейчас</button>
+      <button class="filter-btn" data-f="favorites">❤️ Избранное</button>
+    </div>
+
+    <div class="filter-group">
+      <div class="fg-label">Приём пищи</div>
+      <div class="scroll-row" id="mealRow"></div>
+    </div>
+
+    <div class="filter-group">
+      <div class="fg-label">Кухня</div>
+      <div class="scroll-row" id="cuisineRow"></div>
+    </div>
+
+    <div class="filter-group">
+      <div class="fg-label" style="display:flex; align-items:center; justify-content:space-between;">
+        <span>Особенности</span>
+        <span class="mode-toggle" id="dietModeToggle">
+          <button class="mode-btn" data-m="all">Все выбранные</button>
+          <button class="mode-btn" data-m="any">Любое из них</button>
+        </span>
+      </div>
+      <div class="wrap-row" id="dietRow"></div>
+    </div>
+
+    <div id="gridWrap"></div>
+  </main>
+
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+/* ---------- данные ---------- */
+
+const PANTRY_CATEGORIES = [
+  {name:"Овощи и зелень", items:["картофель","лук","морковь","помидоры","огурцы","капуста","чеснок","зелень","болгарский перец","свёкла","тыква","кабачок","мята","баклажан","редис","сельдерей","шпинат","зелёный лук","стручковая фасоль","кукуруза","брокколи","цветная капуста","горошек","щавель"]},
+  {name:"Крупы, мучное и бобовые", items:["рис","гречка","макароны","мука","чечевица","фасоль","нут","овсянка"]},
+  {name:"Мясо, птица и рыба", items:["говядина","курица","баранина","рыба","колбаса"]},
+  {name:"Молочное и яйца", items:["яйца","молоко","масло сливочное","творог","сыр","йогурт"]},
+  {name:"Специи и база", items:["соль","чёрный перец","растительное масло","сахар","зира","лавровый лист","паприка","уксус","дрожжи","майонез","мёд","корица","имбирь","какао-порошок","разрыхлитель"]},
+  {name:"Фрукты и орехи", items:["яблоки","бананы","лимон","изюм","грецкий орех","клубника","вишня","арбуз","апельсин","курага","чернослив"]}
+];
+
+const pantryOpenCats = new Set([PANTRY_CATEGORIES[0].name]);
+let pantrySearchQuery = "";
+
+const BASE_ALWAYS = ["соль","чёрный перец","растительное масло","сахар","зира","лавровый лист","паприка","уксус","дрожжи"];
+
+const CUISINES = [
+  {id:"uz", name:"Узбекская", emoji:"🇺🇿"},
+  {id:"ru", name:"Русская", emoji:"🇷🇺"},
+  {id:"it", name:"Итальянская", emoji:"🇮🇹"},
+  {id:"gr", name:"Греческая", emoji:"🇬🇷"},
+  {id:"me", name:"Восточная", emoji:"🌿"},
+  {id:"home", name:"Домашняя кухня", emoji:"🏠"}
+];
+
+const MEALS = [
+  {id:"breakfast", name:"Завтрак", emoji:"🌅", cats:["Завтраки"]},
+  {id:"lunch", name:"Обед", emoji:"🍽", cats:["Супы","Основные","Гарниры"]},
+  {id:"dinner", name:"Ужин", emoji:"🌙", cats:["Основные","Салаты","Гарниры"]},
+  {id:"snack", name:"Перекус", emoji:"🍰", cats:["Закуски","Десерты","Выпечка","Напитки"]}
+];
+
+const DIETS = [
+  {id:"veg", name:"Без мяса"},
+  {id:"diet", name:"Диетическая"},
+  {id:"zozh", name:"ЗОЖ"},
+  {id:"sport", name:"Спортивное питание"},
+  {id:"light", name:"Лёгкая"},
+  {id:"hearty", name:"Сытная"}
+];
+
+const SUBSTITUTIONS = {
+  "говядина": ["баранина","курица"],
+  "баранина": ["говядина"],
+  "курица": ["индейка","говядина (для жарки)"],
+  "рыба": ["другой белый сорт рыбы"],
+  "сметана": ["йогурт"],
+  "йогурт": ["сметана"],
+  "масло сливочное": ["растительное масло"],
+  "молоко": ["вода (будет менее насыщенно)"],
+  "майонез": ["сметана"],
+  "сахар": ["мёд"],
+  "мёд": ["сахар"],
+  "лимон": ["немного уксуса"],
+  "уксус": ["лимонный сок"],
+  "фасоль": ["нут"],
+  "нут": ["фасоль"],
+  "чечевица": ["нут","фасоль"],
+  "гречка": ["рис (в гарнирах)"],
+  "макароны": ["рис (кроме пасты)"],
+  "колбаса": ["ветчина или отварная курица"],
+  "какао-порошок": ["тёртый тёмный шоколад"]
+};
+
+const BASE_TOOLS_ALWAYS = ["нож","кастрюля","сковорода","венчик"];
+
+const TOOLS_LIST = ["нож","кастрюля","сковорода","венчик","казан","мантоварка","духовка","мангал",
+  "блендер","мясорубка","скалка","тёрка","толкушка","шампуры","форма для запекания",
+  "соковыжималка","чоппер","миксер","мороженица","шейкер","сито",
+  "микроволновка","мультиварка","аэрогриль"];
+
+const TOOL_SUBSTITUTIONS = {
+  "казан": ["толстостенная кастрюля с крышкой","глубокая сковорода с крышкой"],
+  "мантоварка": ["дуршлаг над кастрюлей с кипятком, накрытый крышкой"],
+  "скалка": ["стеклянная бутылка"],
+  "тёрка": ["нарезать ножом тонкой соломкой"],
+  "толкушка": ["вилка"],
+  "мясорубка": ["блендер (импульсный режим)"],
+  "блендер": ["мясорубка", "измельчить ножом вручную"],
+  "мангал": ["духовка с грилем","сковорода-гриль"],
+  "духовка": ["толстостенная кастрюля с крышкой на плите (для части блюд)"],
+  "шампуры": ["деревянные шпажки, замоченные в воде"],
+  "форма для запекания": ["любая жаропрочная форма или толстая сковорода без пластиковых частей"],
+  "соковыжималка": ["блендер + процедить через сито или марлю","ручная давилка для цитрусовых"],
+  "чоппер": ["нож (нарезать мелко вручную)","блендер в импульсном режиме"],
+  "миксер": ["венчик вручную (займёт больше времени и сил)"],
+  "мороженица": ["морозильная камера — заморозить массу, перемешивая вилкой каждые 30-40 минут"],
+  "шейкер": ["банка с плотной крышкой или стакан с блюдцем сверху"],
+  "микроволновка": ["духовка (дольше по времени)","сковорода с крышкой на плите"],
+  "мультиварка": ["кастрюля на плите с ручным контролем времени"],
+  "аэрогриль": ["духовка с грилем","сковорода"],
+  "сито": ["марля, сложенная в 2-3 слоя"]
+};
+
+const RECIPES = [
+  {id:"plov-beef", tools:["казан"], name:"Плов с говядиной", cat:"Основные", cuisine:"uz", diet:["hearty"], tag:"pilaf,rice,beef", emoji:"🍚", baseServings:4,
+    ingredients:[{n:"рис",a:400,u:"г"},{n:"морковь",a:300,u:"г"},{n:"лук",a:150,u:"г"},{n:"говядина",a:500,u:"г"},{n:"растительное масло",a:150,u:"мл"},{n:"чеснок",a:1,u:"головка"},{n:"зира",a:1,u:"ч.л."},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Нарезать лук полукольцами, морковь — тонкой соломкой"},{t:"Разогреть масло в казане, обжарить говядину до румяной корочки",sec:600},{t:"Добавить лук, обжарить до золотистого цвета",sec:300},{t:"Добавить морковь, обжарить вместе с мясом и луком",sec:600},{t:"Залить водой на 1-2 см выше зирвака, добавить зиру, соль и целую головку чеснока — тушить",sec:1200},{t:"Промыть рис в нескольких водах до прозрачной воды"},{t:"Выложить рис поверх зирвака, разровнять, долить кипятка на 2 см выше уровня риса, варить на сильном огне пока вода не впитается",sec:900},{t:"Собрать рис горкой, сделать проколы до дна шумовкой, накрыть крышкой и томить на слабом огне",sec:1200}]},
+  {id:"plov-chicken", tools:["казан"], name:"Плов с курицей", cat:"Основные", cuisine:"uz", diet:["hearty"], tag:"pilaf,rice,chicken", emoji:"🍚", baseServings:4,
+    ingredients:[{n:"рис",a:400,u:"г"},{n:"морковь",a:300,u:"г"},{n:"лук",a:150,u:"г"},{n:"курица",a:500,u:"г"},{n:"растительное масло",a:100,u:"мл"},{n:"чеснок",a:1,u:"головка"},{n:"зира",a:1,u:"ч.л."},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Нарезать лук полукольцами, морковь — соломкой"},{t:"Обжарить курицу в масле до золотистого цвета",sec:480},{t:"Добавить лук, обжарить до мягкости",sec:300},{t:"Добавить морковь, обжарить вместе",sec:300},{t:"Залить водой, добавить зиру, соль и чеснок — тушить зирвак",sec:600},{t:"Промыть рис до прозрачной воды"},{t:"Выложить рис, долить воды на 2 см выше уровня риса, варить на сильном огне пока вода не впитается",sec:600},{t:"Собрать рис горкой, проколоть до дна, накрыть крышкой и томить на слабом огне",sec:900}]},
+  {id:"soup-veg", tools:["кастрюля"], name:"Овощной суп", cat:"Супы", cuisine:"home", diet:["veg","diet","light","zozh"], tag:"vegetable,soup", emoji:"🍲", baseServings:4,
+    ingredients:[{n:"картофель",a:300,u:"г"},{n:"морковь",a:100,u:"г"},{n:"лук",a:100,u:"г"},{n:"капуста",a:200,u:"г"},{n:"помидоры",a:100,u:"г"},{n:"соль",a:1,u:"ч.л."},{n:"растительное масло",a:2,u:"ст.л."}],
+    steps:[{t:"Нарезать лук кубиком, морковь — соломкой или кружочками"},{t:"Обжарить лук и морковь на масле до мягкости",sec:300},{t:"Залить водой (1.5-2 л), довести до кипения",sec:300},{t:"Нарезать картофель кубиками, добавить в кипящую воду"},{t:"Нашинковать капусту, добавить вместе с картофелем, варить",sec:600},{t:"Нарезать помидоры кубиками, добавить вместе с солью, проварить ещё немного",sec:300}]},
+  {id:"borsch", tools:["кастрюля", "сковорода"], name:"Борщ", cat:"Супы", cuisine:"ru", diet:["hearty"], tag:"borscht,soup", emoji:"🍜", baseServings:5,
+    ingredients:[{n:"свёкла",a:300,u:"г"},{n:"капуста",a:300,u:"г"},{n:"картофель",a:300,u:"г"},{n:"морковь",a:100,u:"г"},{n:"лук",a:100,u:"г"},{n:"говядина",a:400,u:"г"},{n:"чеснок",a:2,u:"зубчика"},{n:"зелень",a:1,u:"пучок"},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Залить говядину холодной водой, довести до кипения, снять пену, варить бульон",sec:1800},{t:"Пока варится бульон, натереть свёклу и морковь на крупной тёрке, лук нарезать кубиком"},{t:"Обжарить лук, морковь и свёклу на масле до мягкости",sec:600},{t:"Нарезать картофель кубиками, добавить в бульон вместе с нашинкованной капустой, варить",sec:900},{t:"Добавить обжарку из свёклы, моркови и лука в кастрюлю, варить ещё",sec:300},{t:"Добавить измельчённый чеснок, зелень и соль, снять с огня и дать настояться",sec:600}]},
+  {id:"lagman", tools:["казан", "кастрюля"], name:"Лагман", cat:"Основные", cuisine:"uz", diet:["hearty"], tag:"lagman,noodles", emoji:"🍜", baseServings:4,
+    ingredients:[{n:"говядина",a:400,u:"г"},{n:"макароны",a:300,u:"г"},{n:"болгарский перец",a:150,u:"г"},{n:"морковь",a:150,u:"г"},{n:"лук",a:150,u:"г"},{n:"помидоры",a:200,u:"г"},{n:"чеснок",a:2,u:"зубчика"},{n:"зира",a:1,u:"ч.л."},{n:"растительное масло",a:3,u:"ст.л."},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Нарезать мясо тонкими полосками, овощи — соломкой"},{t:"Обжарить мясо на масле до корочки",sec:600},{t:"Добавить лук, обжарить до мягкости",sec:300},{t:"Добавить морковь и болгарский перец, обжарить вместе",sec:300},{t:"Добавить помидоры, чеснок, зиру и соль, тушить соус (ваджа) до загустения",sec:900},{t:"Отдельно отварить макароны (лапшу) в подсоленной воде",sec:600},{t:"Выложить лапшу в тарелку, полить сверху соусом ваджа"}]},
+  {id:"shurpa", tools:["казан"], name:"Шурпа", cat:"Супы", cuisine:"uz", diet:["hearty"], tag:"shurpa,lamb,soup", emoji:"🍛", baseServings:5,
+    ingredients:[{n:"баранина",a:500,u:"г"},{n:"картофель",a:400,u:"г"},{n:"морковь",a:150,u:"г"},{n:"лук",a:150,u:"г"},{n:"болгарский перец",a:100,u:"г"},{n:"помидоры",a:200,u:"г"},{n:"зира",a:0.5,u:"ч.л."},{n:"лавровый лист",a:2,u:"шт"},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Залить баранину холодной водой, довести до кипения, снять пену"},{t:"Варить мясо на медленном огне до мягкости",sec:2700},{t:"Нарезать картофель крупными кусками, морковь и лук — кольцами, перец — полосками"},{t:"Добавить картофель и морковь в бульон, варить",sec:900},{t:"Добавить лук, болгарский перец, помидоры, зиру, лавровый лист и соль, варить до готовности овощей",sec:900}]},
+  {id:"manty", tools:["мантоварка", "скалка"], name:"Манты", cat:"Основные", cuisine:"uz", diet:["hearty"], tag:"manti,dumplings", emoji:"🥟", baseServings:4,
+    ingredients:[{n:"говядина",a:400,u:"г"},{n:"лук",a:300,u:"г"},{n:"тыква",a:200,u:"г"},{n:"мука",a:500,u:"г"},{n:"соль",a:1,u:"ч.л."},{n:"растительное масло",a:1,u:"ст.л."}],
+    steps:[{t:"Замесить крутое тесто из муки, воды и соли, накрыть плёнкой и дать отдохнуть",sec:1200},{t:"Мелко нарезать мясо ножом (не через мясорубку), лук и тыкву нарезать мелким кубиком"},{t:"Смешать мясо, лук и тыкву, посолить и поперчить — начинка готова",sec:300},{t:"Раскатать тесто, нарезать квадратами, выложить начинку в центр каждого",sec:900},{t:"Слепить манты, защипнув края",sec:600},{t:"Смазать решётку мантоварки маслом, выложить манты, варить на пару",sec:2400}]},
+  {id:"damlama", tools:["казан"], name:"Дамлама", cat:"Основные", cuisine:"uz", diet:["hearty","zozh"], tag:"stew,vegetables,meat", emoji:"🥘", baseServings:5,
+    ingredients:[{n:"говядина",a:500,u:"г"},{n:"картофель",a:400,u:"г"},{n:"морковь",a:150,u:"г"},{n:"капуста",a:300,u:"г"},{n:"болгарский перец",a:150,u:"г"},{n:"помидоры",a:200,u:"г"},{n:"лук",a:150,u:"г"}],
+    steps:[{t:"Нарезать мясо крупными кусками, овощи — крупными дольками или кольцами"},{t:"На дно казана выложить мясо, посолить"},{t:"Сверху слоями выложить лук, морковь, картофель, болгарский перец, капусту и помидоры, каждый слой слегка посолить"},{t:"Закрыть крышкой, не перемешивая, тушить на медленном огне до готовности",sec:3600},{t:"Аккуратно перемешать перед подачей"}]},
+  {id:"lobio", tools:["казан"], name:"Лобиё (плов с фасолью)", cat:"Основные", cuisine:"uz", diet:["hearty"], tag:"beans,rice,stew", emoji:"🍛", baseServings:4,
+    ingredients:[{n:"фасоль",a:300,u:"г"},{n:"говядина",a:400,u:"г"},{n:"лук",a:150,u:"г"},{n:"морковь",a:150,u:"г"},{n:"растительное масло",a:100,u:"мл"},{n:"зира",a:1,u:"ч.л."},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Замочить фасоль в холодной воде на ночь заранее"},{t:"Нарезать мясо кубиками, лук и морковь — мелко"},{t:"Обжарить мясо на масле до корочки",sec:600},{t:"Добавить лук и морковь, обжарить вместе",sec:600},{t:"Добавить фасоль и воду, чтобы покрыла продукты, добавить зиру и соль"},{t:"Тушить под крышкой до мягкости фасоли",sec:2700}]},
+  {id:"broth-chicken", tools:["кастрюля"], name:"Куриный бульон", cat:"Супы", cuisine:"home", diet:["light","diet","zozh"], tag:"chicken,broth", emoji:"🍜", baseServings:4,
+    ingredients:[{n:"курица",a:500,u:"г"},{n:"морковь",a:100,u:"г"},{n:"лук",a:100,u:"г"},{n:"соль",a:1,u:"ч.л."},{n:"лавровый лист",a:2,u:"шт"}],
+    steps:[{t:"Промыть курицу, положить в кастрюлю и залить холодной водой"},{t:"Довести до кипения на сильном огне, снять пену шумовкой",sec:600},{t:"Убавить огонь до слабого, чтобы бульон едва кипел"},{t:"Очистить морковь, нарезать крупными кусками или кружочками"},{t:"Очистить лук — можно оставить целой луковицей или разрезать пополам"},{t:"Добавить морковь и лук в бульон, варить",sec:1800},{t:"За 10 минут до готовности добавить соль и лавровый лист",sec:600},{t:"Достать морковь, лук и лавровый лист перед подачей"}]},
+  {id:"ukha", tools:["кастрюля"], name:"Уха (рыбный суп)", cat:"Супы", cuisine:"ru", diet:["light","diet"], tag:"fish,soup", emoji:"🐟", baseServings:4,
+    ingredients:[{n:"рыба",a:500,u:"г"},{n:"картофель",a:300,u:"г"},{n:"морковь",a:100,u:"г"},{n:"лук",a:100,u:"г"},{n:"лавровый лист",a:2,u:"шт"},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Очистить и нарезать рыбу крупными кусками"},{t:"Залить рыбу холодной водой, довести до кипения, снять пену",sec:600},{t:"Нарезать картофель кубиками, морковь — кружочками, лук — половинками"},{t:"Добавить картофель и морковь в бульон, варить",sec:600},{t:"Добавить лук, лавровый лист и соль, варить до готовности картофеля и рыбы",sec:600},{t:"Убрать лук и лавровый лист перед подачей"}]},
+  {id:"lentil-soup", tools:["кастрюля"], name:"Чечевичный суп", cat:"Супы", cuisine:"me", diet:["veg","diet","zozh","sport"], tag:"lentil,soup", emoji:"🍲", baseServings:4,
+    ingredients:[{n:"чечевица",a:250,u:"г"},{n:"морковь",a:100,u:"г"},{n:"лук",a:100,u:"г"},{n:"картофель",a:200,u:"г"},{n:"помидоры",a:150,u:"г"},{n:"зира",a:0.5,u:"ч.л."},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Промыть чечевицу в холодной воде"},{t:"Нарезать лук и морковь мелким кубиком"},{t:"Обжарить лук и морковь на масле до мягкости",sec:300},{t:"Нарезать картофель кубиками, помидоры — мелко"},{t:"Добавить чечевицу, картофель, помидоры и зиру, залить водой"},{t:"Варить на среднем огне до мягкости чечевицы, посолить в конце",sec:1200}]},
+  {id:"omelet", tools:["сковорода", "венчик"], name:"Омлет", cat:"Завтраки", cuisine:"home", diet:["zozh","sport","light"], tag:"omelette,eggs", emoji:"🍳", baseServings:2,
+    ingredients:[{n:"яйца",a:3,u:"шт"},{n:"молоко",a:50,u:"мл"},{n:"соль",a:0.25,u:"ч.л."},{n:"масло сливочное",a:10,u:"г"}],
+    steps:[{t:"Разбить яйца в миску, добавить молоко и соль"},{t:"Взбить венчиком до однородности",sec:120},{t:"Растопить масло на сковороде на среднем огне"},{t:"Вылить яичную смесь на сковороду"},{t:"Уменьшить огонь, накрыть крышкой и готовить до загустения",sec:300}]},
+  {id:"eggs-tomato", tools:["сковорода"], name:"Яичница с помидорами", cat:"Завтраки", cuisine:"home", diet:["light","zozh"], tag:"eggs,tomato", emoji:"🍅", baseServings:2,
+    ingredients:[{n:"яйца",a:3,u:"шт"},{n:"помидоры",a:200,u:"г"},{n:"растительное масло",a:1,u:"ст.л."},{n:"соль",a:0.5,u:"ч.л."}],
+    steps:[{t:"Нарезать помидоры дольками или кубиками"},{t:"Разогреть масло на сковороде, выложить помидоры, обжарить до мягкости",sec:240},{t:"Взбить яйца с солью"},{t:"Влить яйца к помидорам, готовить не перемешивая до желаемой прожарки",sec:240}]},
+  {id:"pasta-tomato", tools:["кастрюля", "сковорода"], name:"Паста с томатным соусом", cat:"Основные", cuisine:"it", diet:["veg","hearty"], tag:"pasta,tomato", emoji:"🍝", baseServings:3,
+    ingredients:[{n:"макароны",a:300,u:"г"},{n:"помидоры",a:400,u:"г"},{n:"чеснок",a:2,u:"зубчика"},{n:"растительное масло",a:2,u:"ст.л."},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Поставить воду для макарон, посолить и довести до кипения"},{t:"Отварить макароны согласно времени на упаковке",sec:600},{t:"Пока варятся макароны, нарезать помидоры кубиками, чеснок — мелко"},{t:"Разогреть масло на сковороде, обжарить чеснок до аромата",sec:60},{t:"Добавить помидоры, тушить до загустения соуса",sec:480},{t:"Слить воду с макарон, смешать их с соусом"}]},
+  {id:"buckwheat-chicken", tools:["кастрюля", "сковорода"], name:"Гречка с курицей", cat:"Основные", cuisine:"home", diet:["zozh","sport","hearty"], tag:"buckwheat,chicken", emoji:"🍛", baseServings:4,
+    ingredients:[{n:"гречка",a:250,u:"г"},{n:"курица",a:400,u:"г"},{n:"лук",a:100,u:"г"},{n:"морковь",a:100,u:"г"},{n:"растительное масло",a:2,u:"ст.л."},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Промыть гречку"},{t:"Нарезать курицу кусочками, лук — кубиком, морковь — соломкой"},{t:"Обжарить курицу до золотистой корочки",sec:480},{t:"Добавить лук и морковь, обжарить вместе",sec:420},{t:"Добавить гречку, залить водой (1:2), посолить, довести до кипения"},{t:"Убавить огонь, накрыть крышкой и варить до готовности гречки",sec:900}]},
+  {id:"pancakes", tools:["сковорода", "венчик"], name:"Блины", cat:"Завтраки", cuisine:"ru", diet:["hearty"], tag:"pancakes", emoji:"🥞", baseServings:4,
+    ingredients:[{n:"мука",a:300,u:"г"},{n:"молоко",a:500,u:"мл"},{n:"яйца",a:2,u:"шт"},{n:"сахар",a:2,u:"ст.л."},{n:"соль",a:0.5,u:"ч.л."},{n:"растительное масло",a:2,u:"ст.л."}],
+    steps:[{t:"Смешать яйца, сахар и соль в миске, взбить венчиком"},{t:"Постепенно влить молоко, размешивая"},{t:"Всыпать муку небольшими порциями, размешивая до однородности без комков"},{t:"Влить растительное масло в тесто, размешать, дать постоять",sec:300},{t:"Разогреть сковороду, вылить тонкий слой теста, жарить с одной стороны",sec:90},{t:"Перевернуть и жарить со второй стороны",sec:60}]},
+  {id:"syrniki", tools:["сковорода"], name:"Сырники", cat:"Завтраки", cuisine:"ru", diet:["zozh","sport"], tag:"cottage,cheese,pancakes", emoji:"🧈", baseServings:3,
+    ingredients:[{n:"творог",a:400,u:"г"},{n:"яйца",a:1,u:"шт"},{n:"мука",a:4,u:"ст.л."},{n:"сахар",a:2,u:"ст.л."},{n:"растительное масло",a:2,u:"ст.л."}],
+    steps:[{t:"Размять творог вилкой, добавить яйцо и сахар, перемешать"},{t:"Всыпать муку, замесить однородное тесто",sec:300},{t:"Разделить тесто на шарики, обвалять в муке и слегка приплюснуть"},{t:"Разогреть масло на сковороде, выложить сырники, жарить с одной стороны",sec:180},{t:"Перевернуть и жарить со второй стороны",sec:180}]},
+  {id:"oatmeal", tools:["кастрюля"], name:"Овсяная каша", cat:"Завтраки", cuisine:"home", diet:["zozh","diet","light"], tag:"oatmeal,breakfast", emoji:"🥣", baseServings:2,
+    ingredients:[{n:"овсянка",a:100,u:"г"},{n:"молоко",a:300,u:"мл"},{n:"мёд",a:1,u:"ст.л."},{n:"бананы",a:1,u:"шт"}],
+    steps:[{t:"Довести молоко до кипения в кастрюле"},{t:"Всыпать овсяные хлопья, убавить огонь"},{t:"Варить, помешивая, до загустения",sec:300},{t:"Нарезать банан кружочками"},{t:"Разложить кашу по тарелкам, добавить мёд и банан сверху"}]},
+  {id:"pumpkin-porridge", tools:["кастрюля"], name:"Тыквенная каша", cat:"Завтраки", cuisine:"home", diet:["zozh","diet","light","veg"], tag:"pumpkin,porridge", emoji:"🎃", baseServings:3,
+    ingredients:[{n:"тыква",a:400,u:"г"},{n:"молоко",a:200,u:"мл"},{n:"сахар",a:2,u:"ст.л."},{n:"масло сливочное",a:20,u:"г"}],
+    steps:[{t:"Очистить тыкву и нарезать небольшими кубиками"},{t:"Залить тыкву молоком в кастрюле, довести до кипения"},{t:"Варить на слабом огне до мягкости тыквы",sec:900},{t:"Размять тыкву толкушкой прямо в кастрюле"},{t:"Добавить сахар и масло, перемешать и проварить ещё немного",sec:180}]},
+  {id:"mash", tools:["кастрюля", "толкушка"], name:"Картофельное пюре", cat:"Гарниры", cuisine:"home", diet:["hearty","veg"], tag:"mashed,potato", emoji:"🥔", baseServings:4,
+    ingredients:[{n:"картофель",a:600,u:"г"},{n:"молоко",a:100,u:"мл"},{n:"масло сливочное",a:30,u:"г"},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Очистить картофель и нарезать крупными кусками"},{t:"Залить холодной водой, посолить, довести до кипения"},{t:"Варить до мягкости картофеля",sec:1200},{t:"Слить воду, добавить масло"},{t:"Разминать толкушкой, постепенно вливая тёплое молоко, до однородности",sec:180}]},
+  {id:"fried-potato", tools:["сковорода"], name:"Жареная картошка", cat:"Гарниры", cuisine:"home", diet:["hearty","veg"], tag:"fried,potato", emoji:"🍟", baseServings:3,
+    ingredients:[{n:"картофель",a:500,u:"г"},{n:"лук",a:100,u:"г"},{n:"растительное масло",a:3,u:"ст.л."},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Очистить картофель и нарезать соломкой или дольками"},{t:"Разогреть масло на сковороде на среднем огне"},{t:"Выложить картофель, не накрывая крышкой, обжаривать, помешивая изредка",sec:900},{t:"Нарезать лук полукольцами"},{t:"Добавить лук и соль, обжарить ещё до румяной корочки",sec:300}]},
+  {id:"zucchini-fritters", tools:["сковорода", "тёрка"], name:"Кабачковые оладьи", cat:"Гарниры", cuisine:"home", diet:["veg","light","zozh"], tag:"zucchini,fritters", emoji:"🥒", baseServings:3,
+    ingredients:[{n:"кабачок",a:400,u:"г"},{n:"яйца",a:1,u:"шт"},{n:"мука",a:4,u:"ст.л."},{n:"растительное масло",a:3,u:"ст.л."},{n:"соль",a:0.5,u:"ч.л."}],
+    steps:[{t:"Натереть кабачок на крупной тёрке"},{t:"Отжать лишний сок руками"},{t:"Добавить яйцо, муку и соль, перемешать до однородности",sec:300},{t:"Разогреть масло на сковороде"},{t:"Выкладывать тесто ложкой, обжаривать оладьи с двух сторон",sec:900}]},
+  {id:"fried-fish", tools:["сковорода"], name:"Жареная рыба", cat:"Основные", cuisine:"home", diet:["zozh","sport","light"], tag:"fried,fish", emoji:"🐟", baseServings:3,
+    ingredients:[{n:"рыба",a:500,u:"г"},{n:"мука",a:3,u:"ст.л."},{n:"растительное масло",a:3,u:"ст.л."},{n:"соль",a:1,u:"ч.л."},{n:"лимон",a:0.5,u:"шт"}],
+    steps:[{t:"Нарезать рыбу порционными кусками, посолить"},{t:"Обвалять каждый кусок в муке"},{t:"Разогреть масло на сковороде"},{t:"Обжарить рыбу с одной стороны до золотистой корочки",sec:450},{t:"Перевернуть и обжарить со второй стороны",sec:450},{t:"Сбрызнуть лимонным соком перед подачей"}]},
+  {id:"chicken-cutlets", tools:["сковорода", "мясорубка"], name:"Куриные котлеты", cat:"Основные", cuisine:"home", diet:["zozh","sport"], tag:"chicken,cutlets", emoji:"🍗", baseServings:4,
+    ingredients:[{n:"курица",a:500,u:"г"},{n:"лук",a:100,u:"г"},{n:"яйца",a:1,u:"шт"},{n:"мука",a:2,u:"ст.л."},{n:"растительное масло",a:3,u:"ст.л."},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Пропустить курицу через мясорубку или мелко нарубить ножом"},{t:"Мелко нарезать лук, добавить к фаршу вместе с яйцом, мукой и солью"},{t:"Тщательно перемешать фарш",sec:300},{t:"Разогреть масло на сковороде"},{t:"Сформировать котлеты, выложить на сковороду, жарить с одной стороны",sec:450},{t:"Перевернуть и жарить со второй стороны до готовности",sec:450}]},
+  {id:"shashlik-chicken", tools:["мангал", "шампуры"], name:"Шашлык куриный", cat:"Основные", cuisine:"uz", diet:["sport","hearty"], tag:"shashlik,chicken,grill", emoji:"🍢", baseServings:4,
+    ingredients:[{n:"курица",a:800,u:"г"},{n:"лук",a:200,u:"г"},{n:"растительное масло",a:2,u:"ст.л."},{n:"соль",a:1,u:"ч.л."},{n:"паприка",a:1,u:"ч.л."},{n:"лимон",a:0.5,u:"шт"}],
+    steps:[{t:"Нарезать курицу крупными кусками"},{t:"Нарезать лук кольцами"},{t:"Смешать курицу с луком, маслом, паприкой, солью и соком лимона"},{t:"Оставить мариноваться",sec:1800},{t:"Нанизать мясо на шампуры, чередуя с кольцами лука"},{t:"Жарить на углях, периодически переворачивая",sec:1200}]},
+  {id:"shashlik-lamb", tools:["мангал", "шампуры"], name:"Шашлык из баранины", cat:"Основные", cuisine:"uz", diet:["hearty"], tag:"shashlik,lamb,grill", emoji:"🍢", baseServings:4,
+    ingredients:[{n:"баранина",a:800,u:"г"},{n:"лук",a:200,u:"г"},{n:"соль",a:1,u:"ч.л."},{n:"чёрный перец",a:0.5,u:"ч.л."},{n:"уксус",a:2,u:"ст.л."}],
+    steps:[{t:"Нарезать баранину крупными кусками"},{t:"Нарезать лук кольцами"},{t:"Смешать мясо с луком, солью, перцем и уксусом"},{t:"Оставить мариноваться в прохладном месте",sec:3600},{t:"Нанизать мясо на шампуры"},{t:"Жарить на углях до румяной корочки",sec:1500}]},
+  {id:"olivier", tools:["кастрюля", "нож"], name:"Салат Оливье", cat:"Салаты", cuisine:"ru", diet:["hearty"], tag:"salad,potato", emoji:"🥗", baseServings:5,
+    ingredients:[{n:"картофель",a:300,u:"г"},{n:"морковь",a:150,u:"г"},{n:"огурцы",a:150,u:"г"},{n:"яйца",a:3,u:"шт"},{n:"колбаса",a:200,u:"г"},{n:"майонез",a:100,u:"г"}],
+    steps:[{t:"Отварить картофель и морковь в мундире, яйца — вкрутую",sec:1200},{t:"Остудить и очистить всё"},{t:"Нарезать картофель, морковь и яйца мелким кубиком"},{t:"Нарезать огурцы и колбасу такими же кубиками"},{t:"Смешать все ингредиенты в миске"},{t:"Заправить майонезом и перемешать"}]},
+  {id:"vinegret", tools:["кастрюля", "нож"], name:"Винегрет", cat:"Салаты", cuisine:"ru", diet:["veg","diet","light","zozh"], tag:"vinaigrette,beet,salad", emoji:"🥗", baseServings:4,
+    ingredients:[{n:"свёкла",a:300,u:"г"},{n:"картофель",a:200,u:"г"},{n:"морковь",a:150,u:"г"},{n:"огурцы",a:150,u:"г"},{n:"лук",a:100,u:"г"},{n:"растительное масло",a:3,u:"ст.л."}],
+    steps:[{t:"Отварить свёклу, картофель и морковь до готовности, не очищая",sec:1800},{t:"Остудить, очистить и нарезать мелким кубиком"},{t:"Нарезать огурцы и лук такими же кубиками"},{t:"Смешать все овощи в миске"},{t:"Заправить растительным маслом и перемешать"}]},
+  {id:"greek-salad", tools:["нож"], name:"Греческий салат", cat:"Салаты", cuisine:"gr", diet:["veg","light","zozh","diet"], tag:"greek,salad", emoji:"🥙", baseServings:3,
+    ingredients:[{n:"огурцы",a:200,u:"г"},{n:"помидоры",a:300,u:"г"},{n:"болгарский перец",a:150,u:"г"},{n:"лук",a:50,u:"г"},{n:"сыр",a:150,u:"г"},{n:"растительное масло",a:2,u:"ст.л."}],
+    steps:[{t:"Нарезать огурцы и помидоры крупными дольками"},{t:"Нарезать болгарский перец кольцами, лук — тонкими полукольцами"},{t:"Смешать овощи в миске"},{t:"Нарезать сыр крупными кубиками и выложить сверху"},{t:"Полить маслом перед подачей"}]},
+  {id:"cucumber-tomato-salad", tools:["нож"], name:"Салат из огурцов и помидоров", cat:"Салаты", cuisine:"home", diet:["veg","light","diet","zozh"], tag:"salad,cucumber", emoji:"🥗", baseServings:3,
+    ingredients:[{n:"огурцы",a:200,u:"г"},{n:"помидоры",a:200,u:"г"},{n:"лук",a:50,u:"г"},{n:"растительное масло",a:1,u:"ст.л."},{n:"соль",a:0.5,u:"ч.л."},{n:"зелень",a:1,u:"пучок"}],
+    steps:[{t:"Нарезать огурцы и помидоры кубиками или дольками"},{t:"Нарезать лук тонкими полукольцами"},{t:"Мелко нарубить зелень"},{t:"Смешать всё в миске"},{t:"Заправить маслом и солью, перемешать"}]},
+  {id:"casserole", tools:["духовка", "форма для запекания", "венчик"], name:"Творожная запеканка", cat:"Десерты", cuisine:"ru", diet:["zozh","sport"], tag:"cottage,cheese,casserole", emoji:"🍰", baseServings:6,
+    ingredients:[{n:"творог",a:500,u:"г"},{n:"яйца",a:2,u:"шт"},{n:"сахар",a:3,u:"ст.л."},{n:"мука",a:3,u:"ст.л."}],
+    steps:[{t:"Размять творог, добавить яйца и сахар"},{t:"Тщательно перемешать до однородности"},{t:"Всыпать муку, замесить тесто",sec:300},{t:"Смазать форму маслом, выложить творожную массу, разровнять"},{t:"Выпекать в разогретой до 180°C духовке до золотистой корочки",sec:2100}]},
+  {id:"fruit-salad", tools:["нож"], name:"Фруктовый салат", cat:"Десерты", cuisine:"home", diet:["veg","light","zozh","diet"], tag:"fruit,salad", emoji:"🍎", baseServings:3,
+    ingredients:[{n:"яблоки",a:2,u:"шт"},{n:"бананы",a:2,u:"шт"},{n:"изюм",a:50,u:"г"},{n:"грецкий орех",a:50,u:"г"},{n:"мёд",a:2,u:"ст.л."},{n:"йогурт",a:150,u:"г"}],
+    steps:[{t:"Нарезать яблоки и бананы кубиками"},{t:"Добавить изюм и измельчённые грецкие орехи"},{t:"Перемешать фрукты в миске"},{t:"Заправить йогуртом и мёдом"},{t:"Аккуратно перемешать перед подачей"}]},
+  {id:"flatbread", tools:["духовка", "скалка"], name:"Лепёшка домашняя", cat:"Выпечка", cuisine:"uz", diet:["veg","hearty"], tag:"flatbread,bread", emoji:"🫓", baseServings:4,
+    ingredients:[{n:"мука",a:500,u:"г"},{n:"дрожжи",a:7,u:"г"},{n:"соль",a:1,u:"ч.л."},{n:"растительное масло",a:2,u:"ст.л."}],
+    steps:[{t:"Развести дрожжи в тёплой воде, дать постоять несколько минут",sec:300},{t:"Смешать муку и соль в миске"},{t:"Влить дрожжевую воду и масло, замесить эластичное тесто",sec:600},{t:"Накрыть тесто полотенцем и дать подойти в тёплом месте",sec:3600},{t:"Обмять тесто, разделить на порции и раскатать в лепёшки"},{t:"Выпекать в разогретой духовке до румяной корочки",sec:1200}]},
+  {id:"hummus", tools:["блендер", "кастрюля"], name:"Хумус", cat:"Закуски", cuisine:"me", diet:["veg","zozh","diet","sport"], tag:"hummus,chickpea", emoji:"🥣", baseServings:4,
+    ingredients:[{n:"нут",a:250,u:"г"},{n:"чеснок",a:2,u:"зубчика"},{n:"растительное масло",a:3,u:"ст.л."},{n:"лимон",a:1,u:"шт"},{n:"соль",a:0.5,u:"ч.л."}],
+    steps:[{t:"Замочить нут в воде на ночь заранее"},{t:"Отварить нут до мягкости",sec:2400},{t:"Слить воду, оставив немного отвара"},{t:"Сложить нут, чеснок, масло, сок лимона и соль в блендер"},{t:"Взбить до однородной пасты, при необходимости добавляя отвар",sec:300}]},
+  {id:"ice-cream-vanilla", tools:["венчик","миксер","мороженица"], name:"Домашнее мороженое", cat:"Десерты", cuisine:"home", diet:["veg"], tag:"ice+cream,homemade", emoji:"🍦", baseServings:4,
+    ingredients:[{n:"молоко",a:300,u:"мл"},{n:"яйца",a:3,u:"шт"},{n:"сахар",a:100,u:"г"},{n:"масло сливочное",a:50,u:"г"}],
+    steps:[{t:"Взбить яйца с сахаром до пышной массы",sec:180},{t:"Подогреть молоко в кастрюле почти до кипения",sec:300},{t:"Тонкой струйкой влить горячее молоко в яичную смесь, постоянно взбивая"},{t:"Вернуть смесь на плиту, варить на слабом огне до загустения, не доводя до кипения",sec:300},{t:"Добавить масло, перемешать и остудить"},{t:"Взбить миксером и убрать в мороженицу (или в морозилку, перемешивая каждые 30-40 минут)",sec:2400}]},
+  {id:"strawberry-smoothie", tools:["блендер"], name:"Клубничный смузи", cat:"Напитки", cuisine:"home", diet:["veg","light","zozh"], tag:"strawberry,smoothie", emoji:"🍓", baseServings:2,
+    ingredients:[{n:"клубника",a:300,u:"г"},{n:"йогурт",a:200,u:"г"},{n:"молоко",a:100,u:"мл"},{n:"мёд",a:1,u:"ст.л."}],
+    steps:[{t:"Помыть клубнику, убрать хвостики"},{t:"Сложить клубнику, йогурт, молоко и мёд в блендер"},{t:"Взбить до однородной консистенции",sec:60}]},
+  {id:"lemonade", tools:["соковыжималка"], name:"Домашний лимонад", cat:"Напитки", cuisine:"home", diet:["veg","light"], tag:"lemonade", emoji:"🍋", baseServings:4,
+    ingredients:[{n:"лимон",a:3,u:"шт"},{n:"сахар",a:120,u:"г"},{n:"мята",a:1,u:"пучок"}],
+    steps:[{t:"Выжать сок из лимонов соковыжималкой"},{t:"Сварить сахарный сироп из сахара и небольшого количества воды",sec:180},{t:"Смешать лимонный сок, сироп и холодную воду в кувшине"},{t:"Добавить листья мяты и лёд перед подачей"}]},
+  {id:"banana-milkshake", tools:["блендер"], name:"Молочный коктейль банановый", cat:"Напитки", cuisine:"home", diet:["veg"], tag:"milkshake,banana", emoji:"🥤", baseServings:2,
+    ingredients:[{n:"молоко",a:300,u:"мл"},{n:"бананы",a:2,u:"шт"},{n:"мёд",a:1,u:"ст.л."}],
+    steps:[{t:"Нарезать бананы кружочками"},{t:"Сложить бананы, молоко и мёд в блендер"},{t:"Взбить до однородной пены",sec:60}]},
+  {id:"berry-compote", tools:["кастрюля"], name:"Летний ягодный компот", cat:"Напитки", cuisine:"ru", diet:["veg","light"], tag:"berry,compote,drink", emoji:"🍒", baseServings:4,
+    ingredients:[{n:"вишня",a:300,u:"г"},{n:"сахар",a:120,u:"г"},{n:"лимон",a:0.5,u:"шт"}],
+    steps:[{t:"Перебрать и помыть ягоды"},{t:"Залить ягоды водой в кастрюле, довести до кипения",sec:300},{t:"Добавить сахар, варить на слабом огне",sec:300},{t:"Добавить сок лимона, снять с огня и остудить"}]},
+  {id:"watermelon-juice", tools:["блендер","сито"], name:"Арбузный фреш", cat:"Напитки", cuisine:"home", diet:["veg","light","zozh"], tag:"watermelon,juice", emoji:"🍉", baseServings:2,
+    ingredients:[{n:"арбуз",a:600,u:"г"},{n:"лимон",a:0.5,u:"шт"},{n:"мята",a:1,u:"пучок"}],
+    steps:[{t:"Нарезать мякоть арбуза кубиками, убрать косточки"},{t:"Сложить арбуз в блендер, добавить сок лимона"},{t:"Взбить до однородности",sec:60},{t:"При желании процедить через сито, подавать холодным с мятой"}]},
+  {id:"dried-fruit-compote", tools:["кастрюля"], name:"Компот из сухофруктов", cat:"Напитки", cuisine:"ru", diet:["veg","light"], tag:"dried+fruit,compote", emoji:"🍂", baseServings:4,
+    ingredients:[{n:"курага",a:150,u:"г"},{n:"чернослив",a:150,u:"г"},{n:"изюм",a:50,u:"г"},{n:"сахар",a:100,u:"г"}],
+    steps:[{t:"Промыть курагу, чернослив и изюм"},{t:"Залить сухофрукты холодной водой в кастрюле"},{t:"Довести до кипения, добавить сахар",sec:600},{t:"Варить на слабом огне",sec:900},{t:"Дать настояться под крышкой",sec:1200}]},
+  {id:"mulled-drink", tools:["кастрюля"], name:"Согревающий фруктовый глинтвейн (безалкогольный)", cat:"Напитки", cuisine:"home", diet:["veg"], tag:"mulled,drink,orange", emoji:"🍷", baseServings:4,
+    ingredients:[{n:"апельсин",a:1,u:"шт"},{n:"яблоки",a:2,u:"шт"},{n:"корица",a:1,u:"палочка"},{n:"мёд",a:2,u:"ст.л."}],
+    steps:[{t:"Нарезать яблоки и апельсин дольками"},{t:"Сложить фрукты и корицу в кастрюлю, залить водой"},{t:"Довести до кипения, убавить огонь и томить, не кипятя",sec:900},{t:"Снять с огня, добавить мёд, размешать"},{t:"Дать настояться перед подачей",sec:600}]},
+  {id:"ginger-tea", tools:["кастрюля"], name:"Имбирный чай с лимоном и мёдом", cat:"Напитки", cuisine:"home", diet:["veg","light","zozh"], tag:"ginger,tea,lemon", emoji:"🍵", baseServings:2,
+    ingredients:[{n:"имбирь",a:30,u:"г"},{n:"лимон",a:1,u:"шт"},{n:"мёд",a:2,u:"ст.л."}],
+    steps:[{t:"Очистить имбирь и нарезать тонкими слайсами"},{t:"Залить имбирь кипятком в кастрюле"},{t:"Настоять под крышкой",sec:600},{t:"Добавить сок лимона и мёд перед подачей"}]},
+  {id:"hot-cocoa", tools:["кастрюля","венчик"], name:"Горячий шоколад / какао", cat:"Напитки", cuisine:"home", diet:["veg"], tag:"hot+chocolate,cocoa", emoji:"🍫", baseServings:2,
+    ingredients:[{n:"молоко",a:400,u:"мл"},{n:"какао-порошок",a:2,u:"ст.л."},{n:"сахар",a:2,u:"ст.л."}],
+    steps:[{t:"Подогреть молоко в кастрюле на среднем огне"},{t:"Всыпать какао-порошок и сахар, размешать венчиком до однородности",sec:120},{t:"Довести почти до кипения, не кипятя, снять с огня",sec:180}]},
+  {id:"chocolate-cake", tools:["духовка","форма для запекания","миксер","венчик"], name:"Шоколадный торт", cat:"Десерты", cuisine:"home", diet:["hearty"], tag:"chocolate,cake", emoji:"🎂", baseServings:8,
+    ingredients:[{n:"мука",a:300,u:"г"},{n:"какао-порошок",a:5,u:"ст.л."},{n:"сахар",a:220,u:"г"},{n:"яйца",a:3,u:"шт"},{n:"молоко",a:200,u:"мл"},{n:"растительное масло",a:100,u:"мл"},{n:"разрыхлитель",a:1,u:"ч.л."},{n:"масло сливочное",a:80,u:"г"}],
+    steps:[{t:"Смешать муку, какао-порошок, часть сахара и разрыхлитель в миске"},{t:"Взбить яйца с молоком и растительным маслом миксером",sec:180},{t:"Соединить сухую и жидкую смеси, замесить однородное тесто",sec:180},{t:"Смазать форму маслом, вылить тесто, разровнять"},{t:"Выпекать в разогретой до 180°C духовке",sec:2400},{t:"Остудить корж, растопить сливочное масло с оставшимся какао и сахаром на слабом огне, полить торт глазурью",sec:300}]},
+  {id:"chocolate-ice-cream", tools:["венчик","миксер","мороженица"], name:"Шоколадное мороженое", cat:"Десерты", cuisine:"home", diet:["veg"], tag:"chocolate,ice+cream", emoji:"🍨", baseServings:4,
+    ingredients:[{n:"молоко",a:300,u:"мл"},{n:"яйца",a:3,u:"шт"},{n:"сахар",a:100,u:"г"},{n:"масло сливочное",a:50,u:"г"},{n:"какао-порошок",a:3,u:"ст.л."}],
+    steps:[{t:"Взбить яйца с сахаром до пышной массы",sec:180},{t:"Подогреть молоко с какао-порошком в кастрюле почти до кипения, размешивая венчиком",sec:300},{t:"Тонкой струйкой влить горячее молоко в яичную смесь, постоянно взбивая"},{t:"Вернуть смесь на плиту, варить на слабом огне до загустения, не доводя до кипения",sec:300},{t:"Добавить масло, перемешать и остудить"},{t:"Взбить миксером и убрать в мороженицу (или в морозилку, перемешивая каждые 30-40 минут)",sec:2400}]},
+  {id:"broccoli-cauliflower-soup", tools:["кастрюля","блендер"], name:"Крем-суп из брокколи и цветной капусты", cat:"Супы", cuisine:"home", diet:["veg","diet","zozh","light"], tag:"broccoli,soup", emoji:"🥦", baseServings:4,
+    ingredients:[{n:"брокколи",a:300,u:"г"},{n:"цветная капуста",a:300,u:"г"},{n:"картофель",a:150,u:"г"},{n:"лук",a:100,u:"г"},{n:"растительное масло",a:2,u:"ст.л."},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Нарезать картофель и лук кубиками, разобрать брокколи и цветную капусту на соцветия"},{t:"Обжарить лук на масле до мягкости",sec:300},{t:"Добавить картофель, брокколи, цветную капусту, залить водой",sec:0},{t:"Варить до мягкости всех овощей",sec:900},{t:"Посолить и пюрировать блендером до однородности",sec:180}]},
+  {id:"sorrel-soup", tools:["кастрюля"], name:"Зелёные щи со щавелем", cat:"Супы", cuisine:"ru", diet:["veg","light"], tag:"sorrel,soup,greens", emoji:"🍃", baseServings:4,
+    ingredients:[{n:"щавель",a:200,u:"г"},{n:"картофель",a:300,u:"г"},{n:"морковь",a:100,u:"г"},{n:"лук",a:100,u:"г"},{n:"яйца",a:2,u:"шт"},{n:"сметана",a:100,u:"г"},{n:"растительное масло",a:2,u:"ст.л."},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Отварить яйца вкрутую",sec:600},{t:"Нарезать картофель кубиками, залить водой, довести до кипения",sec:300},{t:"Обжарить лук и морковь на масле",sec:300},{t:"Добавить обжарку к картофелю, варить до мягкости",sec:600},{t:"Помыть и нарезать щавель, добавить в суп за 2-3 минуты до готовности, посолить",sec:180},{t:"Подавать с половинкой яйца и ложкой сметаны"}]},
+  {id:"fried-eggplant-garlic", tools:["сковорода"], name:"Жареные баклажаны с чесночной заправкой", cat:"Закуски", cuisine:"home", diet:["veg"], tag:"eggplant,garlic", emoji:"🍆", baseServings:3,
+    ingredients:[{n:"баклажан",a:400,u:"г"},{n:"чеснок",a:2,u:"зубчика"},{n:"растительное масло",a:3,u:"ст.л."},{n:"уксус",a:1,u:"ст.л."},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Нарезать баклажаны кружочками, посолить и оставить на 10 минут, чтобы ушла горечь",sec:600},{t:"Обсушить баклажаны бумажным полотенцем"},{t:"Обжарить баклажаны на масле с двух сторон до румяной корочки",sec:600},{t:"Растереть чеснок с уксусом и небольшим количеством масла"},{t:"Полить готовые баклажаны чесночной заправкой"}]},
+  {id:"lecho", tools:["сковорода"], name:"Лечо (тушёные баклажаны, перец и помидоры)", cat:"Основные", cuisine:"home", diet:["veg","zozh"], tag:"lecho,vegetable,stew", emoji:"🫑", baseServings:4,
+    ingredients:[{n:"баклажан",a:300,u:"г"},{n:"болгарский перец",a:300,u:"г"},{n:"помидоры",a:300,u:"г"},{n:"лук",a:150,u:"г"},{n:"чеснок",a:2,u:"зубчика"},{n:"растительное масло",a:3,u:"ст.л."},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Нарезать баклажан, перец, помидоры и лук кубиками"},{t:"Обжарить лук на масле до мягкости",sec:300},{t:"Добавить баклажан и перец, обжарить вместе",sec:600},{t:"Добавить помидоры, чеснок и соль, тушить под крышкой до готовности",sec:900}]},
+  {id:"green-beans-garlic", tools:["кастрюля","сковорода"], name:"Стручковая фасоль с чесноком", cat:"Гарниры", cuisine:"home", diet:["veg","light","zozh"], tag:"green+beans,garlic", emoji:"🫛", baseServings:3,
+    ingredients:[{n:"стручковая фасоль",a:400,u:"г"},{n:"чеснок",a:2,u:"зубчика"},{n:"растительное масло",a:2,u:"ст.л."},{n:"соль",a:0.5,u:"ч.л."}],
+    steps:[{t:"Отварить стручковую фасоль в кипящей подсоленной воде",sec:300},{t:"Слить воду, обсушить фасоль"},{t:"Обжарить фасоль с измельчённым чесноком на масле",sec:300},{t:"Посолить и перемешать перед подачей"}]},
+  {id:"corn-pea-salad", tools:["нож"], name:"Салат с кукурузой и горошком", cat:"Салаты", cuisine:"home", diet:["veg","light","diet"], tag:"corn,salad", emoji:"🌽", baseServings:4,
+    ingredients:[{n:"кукуруза",a:200,u:"г"},{n:"горошек",a:200,u:"г"},{n:"огурцы",a:150,u:"г"},{n:"зелёный лук",a:50,u:"г"},{n:"майонез",a:2,u:"ст.л."}],
+    steps:[{t:"Нарезать огурцы мелким кубиком, зелёный лук — тонкими колечками"},{t:"Смешать кукурузу, горошек, огурцы и зелёный лук в миске"},{t:"Заправить майонезом и перемешать"}]},
+  {id:"spinach-soup", tools:["кастрюля","блендер"], name:"Шпинатный крем-суп", cat:"Супы", cuisine:"home", diet:["veg","diet","zozh","light"], tag:"spinach,soup", emoji:"🥬", baseServings:4,
+    ingredients:[{n:"шпинат",a:300,u:"г"},{n:"картофель",a:150,u:"г"},{n:"лук",a:100,u:"г"},{n:"молоко",a:100,u:"мл"},{n:"растительное масло",a:2,u:"ст.л."},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Нарезать картофель и лук кубиками"},{t:"Отварить картофель до мягкости",sec:900},{t:"Обжарить лук на масле",sec:300},{t:"Добавить шпинат к луку, потушить пару минут",sec:180},{t:"Сложить картофель, лук со шпинатом и молоко в блендер, посолить и взбить до однородности",sec:180}]},
+  {id:"radish-sour-cream", tools:["нож"], name:"Редис со сметаной и зеленью", cat:"Закуски", cuisine:"ru", diet:["veg","light","diet"], tag:"radish,salad", emoji:"🥗", baseServings:3,
+    ingredients:[{n:"редис",a:300,u:"г"},{n:"сметана",a:100,u:"г"},{n:"зелень",a:1,u:"пучок"},{n:"соль",a:0.5,u:"ч.л."}],
+    steps:[{t:"Нарезать редис тонкими кружочками или дольками"},{t:"Мелко нарубить зелень"},{t:"Смешать редис с зеленью, заправить сметаной и посолить"}]},
+  {id:"celery-chicken-soup", tools:["кастрюля"], name:"Суп с сельдереем и курицей", cat:"Супы", cuisine:"home", diet:["light","zozh"], tag:"celery,chicken,soup", emoji:"🍲", baseServings:4,
+    ingredients:[{n:"сельдерей",a:200,u:"г"},{n:"курица",a:400,u:"г"},{n:"морковь",a:100,u:"г"},{n:"лук",a:100,u:"г"},{n:"картофель",a:200,u:"г"},{n:"соль",a:1,u:"ч.л."},{n:"лавровый лист",a:2,u:"шт"}],
+    steps:[{t:"Залить курицу холодной водой, довести до кипения, снять пену",sec:600},{t:"Варить бульон на слабом огне",sec:1200},{t:"Нарезать сельдерей, морковь, лук и картофель кубиками"},{t:"Добавить овощи и лавровый лист в бульон, варить до готовности",sec:900},{t:"Посолить за 5 минут до готовности",sec:300}]},
+  {id:"grilled-vegetables", tools:["сковорода"], name:"Овощи гриль (баклажан, кабачок, перец)", cat:"Гарниры", cuisine:"home", diet:["veg","light","zozh"], tag:"grilled,vegetables", emoji:"🔥", baseServings:4,
+    ingredients:[{n:"баклажан",a:300,u:"г"},{n:"кабачок",a:300,u:"г"},{n:"болгарский перец",a:200,u:"г"},{n:"чеснок",a:2,u:"зубчика"},{n:"растительное масло",a:2,u:"ст.л."},{n:"соль",a:1,u:"ч.л."}],
+    steps:[{t:"Нарезать баклажан, кабачок и перец пластинами вдоль"},{t:"Посолить овощи и смазать маслом"},{t:"Обжарить овощи на сухой раскалённой сковороде до полосок и мягкости",sec:900},{t:"Растереть чеснок с маслом и полить готовые овощи"}]}
+];
+
+/* ---------- состояние ---------- */
+
+const state = {
+  have: new Set(),
+  baseAlways: true,
+  haveTools: new Set(),
+  baseToolsAlways: true,
+  tolerance: 8,
+  filter: "all",
+  search: "",
+  cuisine: "all",
+  diets: new Set(),
+  dietMode: "all",
+  favorites: new Set(),
+  meal: "all"
+};
+
+/* ---------- сохранение состояния ---------- */
+
+const STORAGE_KEY = "gotovka_state_v1";
+
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      have: [...state.have],
+      haveTools: [...state.haveTools],
+      baseAlways: state.baseAlways,
+      baseToolsAlways: state.baseToolsAlways,
+      tolerance: state.tolerance,
+      filter: state.filter,
+      search: state.search,
+      cuisine: state.cuisine,
+      diets: [...state.diets],
+      dietMode: state.dietMode,
+      favorites: [...state.favorites],
+      meal: state.meal
+    }));
+  }catch(e){}
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const data = JSON.parse(raw);
+    if(Array.isArray(data.have)) state.have = new Set(data.have);
+    if(Array.isArray(data.haveTools)) state.haveTools = new Set(data.haveTools);
+    if(typeof data.baseAlways === "boolean") state.baseAlways = data.baseAlways;
+    if(typeof data.baseToolsAlways === "boolean") state.baseToolsAlways = data.baseToolsAlways;
+    if(typeof data.tolerance === "number") state.tolerance = data.tolerance;
+    if(typeof data.filter === "string") state.filter = data.filter;
+    if(typeof data.search === "string") state.search = data.search;
+    if(typeof data.cuisine === "string") state.cuisine = data.cuisine;
+    if(Array.isArray(data.diets)) state.diets = new Set(data.diets);
+    if(typeof data.dietMode === "string") state.dietMode = data.dietMode;
+    if(Array.isArray(data.favorites)) state.favorites = new Set(data.favorites);
+    if(typeof data.meal === "string") state.meal = data.meal;
+  }catch(e){}
+}
+
+loadState();
+
+/* ---------- рендер кладовой ---------- */
+
+const pantryEl = document.getElementById("pantry");
+
+function renderPantry(){
+  const q = pantrySearchQuery.trim().toLowerCase();
+  let html = `<h2>Что есть дома</h2><div class="hint">Нажимай на продукты — они появятся в расчёте рецептов.</div>`;
+  html += `<input class="pantry-search" id="pantrySearchInput" placeholder="Найти продукт или инструмент..." value="${pantrySearchQuery.replace(/"/g,'&quot;')}">`;
+
+  let anyMatch = false;
+
+  PANTRY_CATEGORIES.forEach(cat=>{
+    const items = q ? cat.items.filter(i=> i.toLowerCase().includes(q)) : cat.items;
+    if(q && items.length===0) return;
+    if(items.length) anyMatch = true;
+    const isOpen = q ? true : pantryOpenCats.has(cat.name);
+    const count = cat.items.filter(i=>state.have.has(i)).length;
+    html += `
+    <div class="acc-header" data-cat="${cat.name}">
+      <span>${cat.name}${count?` <span class="acc-count">${count}</span>`:""}</span>
+      <span class="acc-arrow">${isOpen?"▾":"▸"}</span>
+    </div>
+    <div class="acc-body" style="${isOpen?"":"display:none;"}">
+      <div class="chips">`;
+    items.forEach(item=>{
+      const on = state.have.has(item) ? "on" : "";
+      html += `<div class="chip" data-item="${item}" style="${on?'background:var(--wood);border-color:var(--wood);color:#fff;':''}">${item}</div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  html += `
+    <div class="base-toggle">
+      <input type="checkbox" id="baseAlways" ${state.baseAlways?"checked":""}>
+      <label for="baseAlways">У меня всегда есть соль, масло, специи — не учитывать их как «нехватку»</label>
+    </div>
+    <div class="tolerance-row">
+      Погрешность расчёта пропорций: <b id="tolVal">${state.tolerance}%</b>
+      <input type="range" id="tolRange" min="0" max="20" value="${state.tolerance}">
+    </div>
+  `;
+
+  const toolsItems = q ? TOOLS_LIST.filter(t=> t.toLowerCase().includes(q)) : TOOLS_LIST;
+  if(!q || toolsItems.length){
+    if(toolsItems.length) anyMatch = true;
+    const toolsOpen = q ? true : pantryOpenCats.has("__tools__");
+    const toolsCount = TOOLS_LIST.filter(t=>state.haveTools.has(t)).length;
+    html += `
+    <div class="acc-header" data-cat="__tools__" style="margin-top:16px; padding-top:14px; border-top:1px solid var(--line);">
+      <span>🛠 Кухонная техника${toolsCount?` <span class="acc-count">${toolsCount}</span>`:""}</span>
+      <span class="acc-arrow">${toolsOpen?"▾":"▸"}</span>
+    </div>
+    <div class="acc-body" style="${toolsOpen?"":"display:none;"}">
+      <div class="chips">`;
+    toolsItems.forEach(tool=>{
+      const on = state.haveTools.has(tool) ? "on" : "";
+      html += `<div class="chip tool-chip" data-tool="${tool}" style="${on?'background:var(--wood);border-color:var(--wood);color:#fff;':''}">${tool}</div>`;
+    });
+    html += `</div>
+    <div class="base-toggle">
+      <input type="checkbox" id="baseToolsAlways" ${state.baseToolsAlways?"checked":""}>
+      <label for="baseToolsAlways">У меня всегда есть нож, кастрюля, сковорода, венчик</label>
+    </div>
+  </div>`;
+  }
+
+  if(q && !anyMatch){
+    html += `<div class="empty" style="padding:14px 4px;">Ничего не найдено по запросу «${pantrySearchQuery}»</div>`;
+  }
+
+  html += `
+    <div class="clear-row">
+      <button id="clearBtn">Очистить кладовую</button>
+    </div>
+  `;
+  pantryEl.innerHTML = html;
+
+  const searchInput = document.getElementById("pantrySearchInput");
+  if(searchInput){
+    searchInput.addEventListener("input", e=>{
+      pantrySearchQuery = e.target.value;
+      renderPantry();
+      const el = document.getElementById("pantrySearchInput");
+      if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+    });
+  }
+
+  pantryEl.querySelectorAll(".acc-header").forEach(h=>{
+    h.addEventListener("click", ()=>{
+      const cat = h.dataset.cat;
+      if(pantryOpenCats.has(cat)) pantryOpenCats.delete(cat); else pantryOpenCats.add(cat);
+      renderPantry();
+    });
+  });
+  pantryEl.querySelectorAll(".chip").forEach(chip=>{
+    chip.addEventListener("click", ()=>{
+      const item = chip.dataset.item;
+      if(state.have.has(item)) state.have.delete(item); else state.have.add(item);
+      saveState();
+      renderPantry();
+      renderGrid();
+    });
+  });
+  document.getElementById("baseAlways").addEventListener("change", e=>{
+    state.baseAlways = e.target.checked;
+    saveState();
+    renderGrid();
+  });
+  pantryEl.querySelectorAll(".tool-chip").forEach(chip=>{
+    chip.addEventListener("click", ()=>{
+      const tool = chip.dataset.tool;
+      if(state.haveTools.has(tool)) state.haveTools.delete(tool); else state.haveTools.add(tool);
+      saveState();
+      renderPantry();
+      renderGrid();
+    });
+  });
+  document.getElementById("baseToolsAlways").addEventListener("change", e=>{
+    state.baseToolsAlways = e.target.checked;
+    saveState();
+    renderGrid();
+  });
+  document.getElementById("tolRange").addEventListener("input", e=>{
+    state.tolerance = parseInt(e.target.value);
+    document.getElementById("tolVal").textContent = state.tolerance + "%";
+    saveState();
+    renderGrid();
+  });
+  document.getElementById("clearBtn").addEventListener("click", ()=>{
+    state.have.clear();
+    state.haveTools.clear();
+    saveState();
+    renderPantry();
+    renderGrid();
+  });
+}
+
+/* ---------- кухни и особенности ---------- */
+
+function renderMealRow(){
+  const row = document.getElementById("mealRow");
+  let html = `<button class="pill-btn ${state.meal==='all'?'active':''}" data-meal="all">Все приёмы пищи</button>`;
+  MEALS.forEach(m=>{
+    html += `<button class="pill-btn ${state.meal===m.id?'active':''}" data-meal="${m.id}">${m.emoji} ${m.name}</button>`;
+  });
+  row.innerHTML = html;
+  row.querySelectorAll(".pill-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      state.meal = btn.dataset.meal;
+      saveState();
+      renderMealRow();
+      renderGrid();
+    });
+  });
+}
+
+function renderCuisineRow(){
+  const row = document.getElementById("cuisineRow");
+  let html = `<button class="pill-btn ${state.cuisine==='all'?'active':''}" data-c="all">Все кухни</button>`;
+  CUISINES.forEach(c=>{
+    html += `<button class="pill-btn ${state.cuisine===c.id?'active':''}" data-c="${c.id}">${c.emoji} ${c.name}</button>`;
+  });
+  row.innerHTML = html;
+  row.querySelectorAll(".pill-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      state.cuisine = btn.dataset.c;
+      saveState();
+      renderCuisineRow();
+      renderGrid();
+    });
+  });
+}
+
+function renderDietRow(){
+  const row = document.getElementById("dietRow");
+  let html = "";
+  DIETS.forEach(d=>{
+    const on = state.diets.has(d.id) ? "diet-active" : "";
+    html += `<button class="pill-btn ${on}" data-d="${d.id}">${d.name}</button>`;
+  });
+  row.innerHTML = html;
+  row.querySelectorAll(".pill-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const id = btn.dataset.d;
+      if(state.diets.has(id)) state.diets.delete(id); else state.diets.add(id);
+      saveState();
+      renderDietRow();
+      renderGrid();
+    });
+  });
+}
+
+function renderDietModeToggle(){
+  document.querySelectorAll(".mode-btn").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.m === state.dietMode);
+    btn.onclick = ()=>{
+      state.dietMode = btn.dataset.m;
+      saveState();
+      renderDietModeToggle();
+      renderGrid();
+    };
+  });
+}
+
+/* ---------- логика совпадений ---------- */
+
+function isHave(name){
+  if(state.have.has(name)) return true;
+  if(state.baseAlways && BASE_ALWAYS.includes(name)) return true;
+  return false;
+}
+
+function isHaveTool(name){
+  if(state.haveTools.has(name)) return true;
+  if(state.baseToolsAlways && BASE_TOOLS_ALWAYS.includes(name)) return true;
+  return false;
+}
+
+function matchInfo(recipe){
+  const total = recipe.ingredients.length;
+  let have = 0;
+  const missing = [];
+  recipe.ingredients.forEach(ing=>{
+    if(isHave(ing.n)) have++; else missing.push(ing.n);
+  });
+  return {have, total, pct: Math.round((have/total)*100), missing};
+}
+
+function toolInfo(recipe){
+  const tools = recipe.tools || [];
+  const missing = tools.filter(t=> !isHaveTool(t));
+  return {total: tools.length, have: tools.length - missing.length, missing};
+}
+
+function needsAdvancePrep(recipe){
+  return recipe.steps.some(s=> /заранее|на ночь/i.test(s.t));
+}
+
+function recipeDurationSec(recipe){
+  return recipe.steps.reduce((s,st)=> s + (st.sec||0), 0);
+}
+
+function fmtDuration(totalSec){
+  const mins = Math.round(totalSec/60);
+  if(mins < 60) return `~${mins} мин`;
+  const h = Math.floor(mins/60);
+  const m = mins%60;
+  return m ? `~${h} ч ${m} мин` : `~${h} ч`;
+}
+
+/* ---------- рендер сетки рецептов ---------- */
+
+const gridWrap = document.getElementById("gridWrap");
+
+function applyCommonFilters(list){
+  if(state.meal !== "all"){
+    const mealMeta = MEALS.find(m=>m.id===state.meal);
+    if(mealMeta) list = list.filter(x=> mealMeta.cats.includes(x.r.cat));
+  }
+  if(state.filter === "full"){
+    list = list.filter(x=> x.m.missing.length===0 && x.tm.missing.length===0);
+  }
+  if(state.filter === "favorites"){
+    list = list.filter(x=> state.favorites.has(x.r.id));
+  }
+  if(state.search.trim()){
+    const q = state.search.trim().toLowerCase();
+    list = list.filter(x=> x.r.name.toLowerCase().includes(q));
+  }
+  if(state.diets.size > 0){
+    if(state.dietMode === "any"){
+      list = list.filter(x=> [...state.diets].some(d => x.r.diet.includes(d)));
+    } else {
+      list = list.filter(x=> [...state.diets].every(d => x.r.diet.includes(d)));
+    }
+  }
+  return list;
+}
+
+function cardHtml(r, m, tm){
+  const ingredientsReady = m.missing.length===0;
+  const fullyReady = ingredientsReady && tm.missing.length===0;
+  const cuisineMeta = CUISINES.find(c=>c.id===r.cuisine);
+  const duration = fmtDuration(recipeDurationSec(r));
+  const prepNeeded = needsAdvancePrep(r);
+  let statusText;
+  if(fullyReady){
+    statusText = "Можно приготовить сейчас";
+  } else if(ingredientsReady){
+    statusText = "Продукты есть, не хватает техники";
+  } else {
+    statusText = m.have + "/" + m.total + " продуктов есть";
+  }
+  const MAX_MISSING_SHOWN = 3;
+  let missingText = "";
+  if(!ingredientsReady){
+    const shown = m.missing.slice(0, MAX_MISSING_SHOWN).join(", ");
+    const rest = m.missing.length - MAX_MISSING_SHOWN;
+    missingText = `Не хватает: ${shown}${rest > 0 ? ` +ещё ${rest}` : ""}`;
+  }
+  return `
+    <div class="card ${fullyReady?'full-ready':''}" data-id="${r.id}">
+      <div class="photo">
+        <img src="https://loremflickr.com/380/260/${r.tag}" loading="lazy"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <span style="display:none; font-size:40px;">${r.emoji}</span>
+        <button class="fav-btn ${state.favorites.has(r.id)?'on':''}" data-fav="${r.id}">${state.favorites.has(r.id)?'❤️':'🤍'}</button>
+      </div>
+      <div class="body">
+        <div class="pill-row">
+          <span class="cat-pill">${cuisineMeta ? cuisineMeta.emoji : ""} ${r.cat}</span>
+          <span class="time-pill">⏱ ${duration}</span>
+          ${prepNeeded ? `<span class="prep-pill">⏰ заранее</span>` : ""}
+        </div>
+        <h3>${r.name}</h3>
+        <div class="match-bar ${fullyReady?'full':''}"><div style="width:${m.pct}%;"></div></div>
+        <div class="match-text ${fullyReady?'full':''}">${statusText}</div>
+        ${ingredientsReady ? "" : `<div class="missing">${missingText}</div>`}
+        ${(ingredientsReady && !fullyReady) ? `<div class="tool-missing-note">🛠 нет: ${tm.missing.join(", ")}</div>` : ""}
+      </div>
+    </div>`;
+}
+
+function computeSummary(){
+  let list = RECIPES.map(r=>({r, m:matchInfo(r), tm:toolInfo(r)}));
+  if(state.cuisine !== "all"){
+    list = list.filter(x=> x.r.cuisine === state.cuisine);
+  }
+  if(state.meal !== "all"){
+    const mealMeta = MEALS.find(m=>m.id===state.meal);
+    if(mealMeta) list = list.filter(x=> mealMeta.cats.includes(x.r.cat));
+  }
+  if(state.search.trim()){
+    const q = state.search.trim().toLowerCase();
+    list = list.filter(x=> x.r.name.toLowerCase().includes(q));
+  }
+  if(state.diets.size > 0){
+    if(state.dietMode === "any"){
+      list = list.filter(x=> [...state.diets].some(d => x.r.diet.includes(d)));
+    } else {
+      list = list.filter(x=> [...state.diets].every(d => x.r.diet.includes(d)));
+    }
+  }
+  const total = list.length;
+  const ready = list.filter(x=> x.m.missing.length===0 && x.tm.missing.length===0).length;
+  return {total, ready};
+}
+
+function renderGrid(){
+  const summary = computeSummary();
+  const summaryEl = document.getElementById("resultSummary");
+  if(summaryEl){
+    summaryEl.innerHTML = summary.total === 0
+      ? "Ничего не подходит под текущие фильтры"
+      : `Найдено <b>${summary.total}</b> ${summary.total===1?"рецепт":"рецептов"} · 🟢 можно приготовить сейчас: <b>${summary.ready}</b>`;
+  }
+
+  let list = RECIPES.map(r=>({r, m:matchInfo(r), tm:toolInfo(r)}));
+
+  if(state.cuisine !== "all"){
+    list = list.filter(x=> x.r.cuisine === state.cuisine);
+    list = applyCommonFilters(list);
+    list.sort((a,b)=> b.m.pct - a.m.pct);
+    if(list.length===0){
+      gridWrap.innerHTML = `<div class="empty">Ничего не найдено — попробуй снять фильтры или отметить больше продуктов.</div>`;
+      return;
+    }
+    gridWrap.innerHTML = `<div class="grid">${list.map(x=>cardHtml(x.r,x.m,x.tm)).join("")}</div>`;
+  } else {
+    list = applyCommonFilters(list);
+    if(list.length===0){
+      gridWrap.innerHTML = `<div class="empty">Ничего не найдено — попробуй снять фильтры или отметить больше продуктов.</div>`;
+      return;
+    }
+    let html = "";
+    CUISINES.forEach(c=>{
+      const group = list.filter(x=> x.r.cuisine === c.id);
+      if(group.length===0) return;
+      group.sort((a,b)=> b.m.pct - a.m.pct);
+      html += `<div class="cuisine-heading">${c.emoji} ${c.name}</div>`;
+      html += `<div class="grid">${group.map(x=>cardHtml(x.r,x.m,x.tm)).join("")}</div>`;
+    });
+    gridWrap.innerHTML = html || `<div class="empty">Ничего не найдено.</div>`;
+  }
+
+  gridWrap.querySelectorAll(".card").forEach(card=>{
+    card.addEventListener("click", ()=> openRecipe(card.dataset.id));
+  });
+  gridWrap.querySelectorAll(".fav-btn").forEach(btn=>{
+    btn.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      toggleFavorite(btn.dataset.fav);
+    });
+  });
+}
+
+function toggleFavorite(id){
+  if(state.favorites.has(id)) state.favorites.delete(id); else state.favorites.add(id);
+  saveState();
+  renderGrid();
+  if(overlay.classList.contains("show")){
+    const recipe = RECIPES.find(r=>r.id===id);
+    if(recipe) renderModal(recipe);
+  }
+}
+
+function surpriseMe(){
+  let list = RECIPES.map(r=>({r, m:matchInfo(r), tm:toolInfo(r)}));
+
+  if(state.cuisine !== "all"){
+    list = list.filter(x=> x.r.cuisine === state.cuisine);
+  }
+  if(state.meal !== "all"){
+    const mealMeta = MEALS.find(m=>m.id===state.meal);
+    if(mealMeta) list = list.filter(x=> mealMeta.cats.includes(x.r.cat));
+  }
+  if(state.diets.size > 0){
+    if(state.dietMode === "any"){
+      list = list.filter(x=> [...state.diets].some(d => x.r.diet.includes(d)));
+    } else {
+      list = list.filter(x=> [...state.diets].every(d => x.r.diet.includes(d)));
+    }
+  }
+  if(state.search.trim()){
+    const q = state.search.trim().toLowerCase();
+    list = list.filter(x=> x.r.name.toLowerCase().includes(q));
+  }
+
+  if(list.length === 0){
+    alert("По текущим фильтрам ничего не нашлось — попробуй снять часть фильтров.");
+    return;
+  }
+
+  const ready = list.filter(x=> x.m.missing.length===0 && x.tm.missing.length===0);
+  const pool = ready.length ? ready : list;
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  openRecipe(pick.r.id);
+}
+
+document.getElementById("surpriseBtn").addEventListener("click", surpriseMe);
+
+document.querySelectorAll(".filter-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    state.filter = btn.dataset.f;
+    saveState();
+    renderGrid();
+  });
+});
+
+document.getElementById("search").addEventListener("input", e=>{
+  state.search = e.target.value;
+  saveState();
+  renderGrid();
+});
+
+/* ---------- мобильные вкладки ---------- */
+
+const layoutEl = document.getElementById("layout");
+const tabPantry = document.getElementById("tabPantry");
+const tabRecipes = document.getElementById("tabRecipes");
+
+tabPantry.addEventListener("click", ()=>{
+  layoutEl.classList.add("show-pantry");
+  layoutEl.classList.remove("show-recipes");
+  tabPantry.classList.add("active");
+  tabRecipes.classList.remove("active");
+});
+tabRecipes.addEventListener("click", ()=>{
+  layoutEl.classList.add("show-recipes");
+  layoutEl.classList.remove("show-pantry");
+  tabRecipes.classList.add("active");
+  tabPantry.classList.remove("active");
+});
+
+/* ---------- модалка рецепта ---------- */
+
+const overlay = document.getElementById("overlay");
+const modal = document.getElementById("modal");
+let currentServings = {};
+const timers = {};
+
+function scaledAmount(base, factor){
+  const val = base * factor;
+  const low = val * (1 - state.tolerance/100);
+  const high = val * (1 + state.tolerance/100);
+  const round = v => v >= 10 ? Math.round(v) : Math.round(v*10)/10;
+  if(state.tolerance === 0) return `${round(val)}`;
+  return `${round(low)}–${round(high)}`;
+}
+
+function openRecipe(id){
+  const recipe = RECIPES.find(r=>r.id===id);
+  if(!currentServings[id]) currentServings[id] = recipe.baseServings;
+  renderModal(recipe);
+  overlay.classList.add("show");
+}
+
+function closeRecipe(){
+  overlay.classList.remove("show");
+  Object.keys(timers).forEach(k=>{
+    if(timers[k] && timers[k].interval) clearInterval(timers[k].interval);
+  });
+}
+
+function renderModal(recipe){
+  const servings = currentServings[recipe.id];
+  const factor = servings / recipe.baseServings;
+  const m = matchInfo(recipe);
+  const cuisineMeta = CUISINES.find(c=>c.id===recipe.cuisine);
+  const dietNames = recipe.diet.map(d => (DIETS.find(x=>x.id===d)||{}).name).filter(Boolean);
+
+  const ingRows = recipe.ingredients.map(ing=>{
+    const have = isHave(ing.n);
+    const sub = SUBSTITUTIONS[ing.n];
+    const subHtml = sub ? `<div class="sub-note">замена: ${sub.join(", ")}</div>` : "";
+    return `<tr>
+      <td class="${have?'have':'miss'}">${have?'✓':'✕'} ${ing.n}${subHtml}</td>
+      <td class="amt">${scaledAmount(ing.a, factor)} ${ing.u}</td>
+    </tr>`;
+  }).join("");
+
+  const stepsHtml = recipe.steps.map((s,i)=>{
+    const key = recipe.id+"-"+i;
+    const hasTimer = !!s.sec;
+    const isPrep = /заранее|на ночь/i.test(s.t);
+    return `
+    <div class="step ${isPrep?'prep-step':''}" id="step-${key}">
+      <div class="step-num">${isPrep?'⏰':i+1}</div>
+      <div class="step-text">
+        ${s.t}
+        ${hasTimer ? `
+        <div class="timer" id="timer-${key}">
+          <span class="clock" id="clock-${key}">${fmtTime(s.sec)}</span>
+          <button class="tbtn" onclick="startTimer('${recipe.id}',${i},${s.sec})">Старт</button>
+          <button class="tbtn stop" onclick="resetTimer('${recipe.id}',${i},${s.sec})">Сброс</button>
+        </div>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+
+  modal.innerHTML = `
+    <div style="position:relative;">
+      <button class="close-btn" onclick="closeRecipe()">✕</button>
+      <div class="photo">
+        <img src="https://loremflickr.com/640/440/${recipe.tag}"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <span style="display:none; font-size:64px;">${recipe.emoji}</span>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="pill-row">
+        <span class="cat-pill">${cuisineMeta ? cuisineMeta.emoji : ""} ${cuisineMeta ? cuisineMeta.name : ""}</span>
+        <span class="cat-pill">${recipe.cat}</span>
+        ${dietNames.map(d=>`<span class="cat-pill">${d}</span>`).join("")}
+      </div>
+      <h2 style="display:flex; align-items:center; flex-wrap:wrap;">
+        ${recipe.name}
+        <button class="modal-fav-btn ${state.favorites.has(recipe.id)?'on':''}" onclick="toggleFavorite('${recipe.id}')">
+          ${state.favorites.has(recipe.id) ? "❤️ В избранном" : "🤍 В избранное"}
+        </button>
+      </h2>
+      <div style="color:var(--ink-soft); font-size:12.5px;">${m.have}/${m.total} продуктов уже есть дома</div>
+
+      <div class="servings-row">
+        <button onclick="changeServings('${recipe.id}',-1)">−</button>
+        <div class="count">${servings} порц.</div>
+        <button onclick="changeServings('${recipe.id}',1)">+</button>
+        <div class="tol">± ${state.tolerance}% на глаз</div>
+      </div>
+
+      ${recipe.tools && recipe.tools.length ? `
+      <div class="tools-block">
+        <div class="fg-label">Нужна техника / посуда</div>
+        <div class="wrap-row">${recipe.tools.map(t=>{
+          const has = isHaveTool(t);
+          if(has) return `<span class="tool-pill have-tool">✓ ${t}</span>`;
+          const subs = TOOL_SUBSTITUTIONS[t];
+          const subText = subs ? ` — замена: ${subs.join(", ")}` : "";
+          return `<span class="tool-pill miss-tool">✕ ${t}${subText}</span>`;
+        }).join("")}</div>
+      </div>` : ""}
+
+      <table class="ing">${ingRows}</table>
+
+      ${m.missing.length ? `<button class="shopping-btn" id="shoppingBtn" data-id="${recipe.id}">📋 Скопировать список покупок (${m.missing.length})</button>` : ""}
+
+      <div class="steps">
+        <h3>Шаги</h3>
+        ${stepsHtml}
+      </div>
+    </div>
+  `;
+
+  const shoppingBtn = document.getElementById("shoppingBtn");
+  if(shoppingBtn){
+    shoppingBtn.addEventListener("click", ()=>{
+      const lines = recipe.ingredients
+        .filter(ing=> !isHave(ing.n))
+        .map(ing=> `- ${ing.n}: ${scaledAmount(ing.a, factor)} ${ing.u}`);
+      const text = `Список покупок — ${recipe.name}:\n` + lines.join("\n");
+      const done = ()=>{
+        shoppingBtn.textContent = "✓ Скопировано";
+        setTimeout(()=>{ shoppingBtn.textContent = `📋 Скопировать список покупок (${lines.length})`; }, 2000);
+      };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done).catch(()=> alert(text));
+      } else {
+        alert(text);
+      }
+    });
+  }
+}
+
+function changeServings(id, delta){
+  currentServings[id] = Math.max(1, currentServings[id] + delta);
+  const recipe = RECIPES.find(r=>r.id===id);
+  renderModal(recipe);
+}
+
+function fmtTime(sec){
+  const m = Math.floor(sec/60);
+  const s = sec%60;
+  return `${m}:${s.toString().padStart(2,"0")}`;
+}
+
+function startTimer(recipeId, idx, totalSec){
+  const key = recipeId+"-"+idx;
+  if(timers[key] && timers[key].interval) return;
+  let remaining = (timers[key] && timers[key].left != null) ? timers[key].left : totalSec;
+  timers[key] = timers[key] || {};
+  timers[key].interval = setInterval(()=>{
+    remaining--;
+    const clockEl = document.getElementById("clock-"+key);
+    if(clockEl) clockEl.textContent = fmtTime(Math.max(remaining,0));
+    if(remaining <= 0){
+      clearInterval(timers[key].interval);
+      timers[key].interval = null;
+      timers[key].left = 0;
+      const stepEl = document.getElementById("step-"+key);
+      const timerEl = document.getElementById("timer-"+key);
+      if(stepEl) stepEl.classList.add("flash");
+      if(timerEl) timerEl.classList.add("done");
+      beep();
+    } else {
+      timers[key].left = remaining;
+    }
+  }, 1000);
+}
+
+function resetTimer(recipeId, idx, totalSec){
+  const key = recipeId+"-"+idx;
+  if(timers[key] && timers[key].interval) clearInterval(timers[key].interval);
+  timers[key] = {interval:null, left:totalSec};
+  const clockEl = document.getElementById("clock-"+key);
+  if(clockEl) clockEl.textContent = fmtTime(totalSec);
+  const stepEl = document.getElementById("step-"+key);
+  const timerEl = document.getElementById("timer-"+key);
+  if(stepEl) stepEl.classList.remove("flash");
+  if(timerEl) timerEl.classList.remove("done");
+}
+
+function beep(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = "sine";
+    o.frequency.value = 880;
+    g.gain.value = 0.15;
+    o.start();
+    setTimeout(()=>{ o.stop(); ctx.close(); }, 400);
+  }catch(e){}
+}
+
+overlay.addEventListener("click", e=>{
+  if(e.target === overlay) closeRecipe();
+});
+
+/* ---------- старт ---------- */
+
+document.getElementById("search").value = state.search;
+document.querySelectorAll(".filter-btn").forEach(b=>{
+  b.classList.toggle("active", b.dataset.f === state.filter);
+});
+
+renderPantry();
+renderMealRow();
+renderCuisineRow();
+renderDietRow();
+renderDietModeToggle();
+renderGrid();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("service-worker.js").catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
